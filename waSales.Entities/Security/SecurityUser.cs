@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using waSales.Entities.Configuration;
+
+namespace waSales.Entities.Security
+{
+    public class SecurityUser
+    {
+        public int Id { get; set; }
+        [Required]
+        public int SecurityRoleId { get; set; }
+        [Required]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre no debe de tener más de 100 caracteres, ni menos de 3 caracteres.")]
+        public string Nombre { get; set; }
+        public string Tipo_documento { get; set; }
+        public string Num_documento { get; set; }
+        public string Direccion { get; set; }
+        public string Telefono { get; set; }
+        public string Email { get; set; }
+        [Required]
+        public byte[] Password_hash { get; set; }
+        [Required]
+        public byte[] Password_salt { get; set; }
+
+        public bool Condicion { get; set; }
+
+        public int CompanyId { get; set; }
+        public virtual Company Company { get; set; }
+
+        public SecurityRole Rol { get; set; }
+    }
+}
