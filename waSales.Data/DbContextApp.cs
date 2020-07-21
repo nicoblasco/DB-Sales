@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using waSales.Data.Mapping.Configuration;
+using waSales.Data.Mapping.Provider;
 using waSales.Data.Mapping.Security;
 using waSales.Data.Mapping.System;
 using waSales.Data.Mapping.Tipification;
@@ -54,6 +55,11 @@ namespace waSales.Data
         public DbSet<SalesUnit> SalesUnits { get; set; }
 
 
+        /*Menu*/
+        public DbSet<Entities.Provider.Provider> Providers { get; set; }
+
+
+
 
 
         public DbContextApp(DbContextOptions<DbContextApp> options) : base(options)
@@ -99,6 +105,10 @@ namespace waSales.Data
             modelBuilder.ApplyConfiguration(new DocumentTypeMap());
             modelBuilder.ApplyConfiguration(new LocationMap());
             modelBuilder.ApplyConfiguration(new SalesUnitMap());
+
+            /*Menu*/
+
+            modelBuilder.ApplyConfiguration(new ProviderMap());
 
         }
     }
