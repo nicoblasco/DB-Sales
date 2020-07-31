@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using waSales.Data.Mapping.Configuration;
+using waSales.Data.Mapping.Customer;
 using waSales.Data.Mapping.Provider;
 using waSales.Data.Mapping.Security;
 using waSales.Data.Mapping.System;
@@ -56,6 +57,7 @@ namespace waSales.Data
 
 
         /*Menu*/
+        public DbSet<Entities.Customer.Customer> Customers { get; set; }
         public DbSet<Entities.Provider.Provider> Providers { get; set; }
 
 
@@ -107,7 +109,7 @@ namespace waSales.Data
             modelBuilder.ApplyConfiguration(new SalesUnitMap());
 
             /*Menu*/
-
+            modelBuilder.ApplyConfiguration(new CustomerMap());
             modelBuilder.ApplyConfiguration(new ProviderMap());
 
         }

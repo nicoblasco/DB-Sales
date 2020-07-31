@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -8,33 +7,33 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using waSales.Data;
-using waSales.Entities.Provider;
-using waSales.Web.Models.Provider;
+using waSales.Entities.Customer;
+using waSales.Web.Models.Customer;
 
 namespace waSales.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProvidersController : ControllerBase
+    public class CustomersController : ControllerBase
     {
         private readonly DbContextApp _context;
         private readonly IConfiguration _config;
 
-        public ProvidersController(DbContextApp context, IConfiguration config)
+        public CustomersController(DbContextApp context, IConfiguration config)
         {
             _context = context;
             _config = config;
         }
 
-        // GET: api/Providers/5
+        // GET: api/Customers/5
         [HttpGet("{companyId}")]
-        public IEnumerable<IndexProviderViewModel> GetProviders([FromRoute] int companyId)
+        public IEnumerable<IndexCustomerViewModel> GetProviders([FromRoute] int companyId)
         {
-            List<Provider> providers = _context.Providers.Where(x => x.Enabled == true && x.CompanyId == companyId).Include(x=>x.Cities).ToList();
-            List<IndexProviderViewModel> list = new List<IndexProviderViewModel>();
+            List<Customer> providers = _context.Customers.Where(x => x.Enabled == true && x.CompanyId == companyId).Include(x => x.Cities).ToList();
+            List<IndexCustomerViewModel> list = new List<IndexCustomerViewModel>();
             foreach (var item in providers)
             {
-                IndexProviderViewModel model = new IndexProviderViewModel
+                IndexCustomerViewModel model = new IndexCustomerViewModel
                 {
                     Address = item.Address,
                     CountryId = item.CountryId,
@@ -43,15 +42,15 @@ namespace waSales.Web.Controllers
                     City = item.Cities?.Description,
                     DateInitial = item.DateInitial,
                     Documento = item.Documento,
-                    DocumentTypeId= item.DocumentTypeId,
-                    Email=item.Email,
+                    DocumentTypeId = item.DocumentTypeId,
+                    Email = item.Email,
                     Enabled = item.Enabled,
                     Favorite = item.Favorite,
-                    Id= item.Id,
+                    Id = item.Id,
                     Observation = item.Observation,
                     Phone = item.Phone,
-                    RazonSocial = item.RazonSocial,
-                    WebSite = item.WebSite
+                    Names = item.Names,
+                    PriceListId = item.PriceListId
                 };
 
                 if (!string.IsNullOrEmpty(item.Logo))
@@ -64,42 +63,42 @@ namespace waSales.Web.Controllers
                 list.Add(model);
             }
 
-            return list.OrderBy(x=>x.RazonSocial);
+            return list.OrderBy(x => x.Names);
         }
 
 
-        // POST: api/Providers/Create
+        // POST: api/Customers/Create
         [HttpPost("[action]")]
-        public async Task<IActionResult> Create([FromBody] CreateProviderViewModel model)
+        public async Task<IActionResult> Create([FromBody] CreateCustomerViewModel model)
         {
-            string strRuta = _config["ProviderAvatar"];
+            string strRuta = _config["CustomerAvatar"];
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Provider modelo = new Provider
-            {                
+            Customer modelo = new Customer
+            {
                 CompanyId = model.CompanyId,
                 Enabled = true,
                 Address = model.Address,
                 CountryId = model.CountryId,
                 StateId = model.StateId,
                 CityId = model.CityId,
-                WebSite= model.WebSite,
-                RazonSocial= model.RazonSocial,
-                Phone= model.Phone,
-                DateInitial= DateTime.Now,
+                Names = model.Names,
+                Phone = model.Phone,
+                DateInitial = DateTime.Now,
                 Documento = model.Documento,
                 DocumentTypeId = model.DocumentTypeId,
-                Email=model.Email,
+                Email = model.Email,
                 Favorite = model.Favorite,
-                Observation= model.Observation
+                Observation = model.Observation,
+                PriceListId = model.PriceListId
             };
 
 
-            _context.Providers.Add(modelo);
+            _context.Customers.Add(modelo);
             try
             {
                 await _context.SaveChangesAsync();
@@ -131,12 +130,12 @@ namespace waSales.Web.Controllers
         }
 
 
-        // PUT: api/Providers/Update/5
+        // PUT: api/Customers/Update/5
         [HttpPut("[action]")]
-        public async Task<IActionResult> Update([FromBody] UpdateProviderViewModel model)
+        public async Task<IActionResult> Update([FromBody] UpdateCustomerViewModel model)
         {
 
-            string strRuta = _config["ProviderAvatar"];
+            string strRuta = _config["CustomerAvatar"];
 
             if (!ModelState.IsValid)
             {
@@ -148,10 +147,10 @@ namespace waSales.Web.Controllers
                 return BadRequest();
             }
 
-            var modelo = await _context.Providers.FirstOrDefaultAsync(x => x.Id == model.Id);
+            var modelo = await _context.Customers.FirstOrDefaultAsync(x => x.Id == model.Id);
 
             if (modelo == null)
-                return BadRequest("Proveedor inexistente");
+                return BadRequest("Cliente inexistente");
 
             modelo.Address = model.Address;
             modelo.CountryId = model.CountryId;
@@ -163,8 +162,8 @@ namespace waSales.Web.Controllers
             modelo.Favorite = model.Favorite;
             modelo.Observation = model.Observation;
             modelo.Phone = model.Phone;
-            modelo.RazonSocial = model.RazonSocial;
-            modelo.WebSite = model.WebSite;
+            modelo.Names = model.Names;
+            modelo.PriceListId = model.PriceListId;
 
             ////Guardo el avatar
             if (!(string.IsNullOrEmpty(model.LogoName)) && (!string.IsNullOrEmpty(model.Logo)))
@@ -198,9 +197,9 @@ namespace waSales.Web.Controllers
         }
 
 
-        // PUT: api/Providers/Delete/5
+        // PUT: api/Customers/Delete/5
         [HttpPut("[action]")]
-        public async Task<IActionResult> Delete([FromBody] DeleteProviderViewModel model)
+        public async Task<IActionResult> Delete([FromBody] DeleteCustomerViewModel model)
         {
 
 
@@ -209,7 +208,7 @@ namespace waSales.Web.Controllers
                 return BadRequest();
             }
 
-            var modelo = await _context.Providers.FirstOrDefaultAsync(x => x.Id == model.Id);
+            var modelo = await _context.Customers.FirstOrDefaultAsync(x => x.Id == model.Id);
 
             modelo.Enabled = false;
 
@@ -234,6 +233,5 @@ namespace waSales.Web.Controllers
 
             return Ok();
         }
-
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using waSales.Data;
 using waSales.Entities.Tipification;
+using waSales.Web.Models.Reusable.Combo;
 using waSales.Web.Models.Reusable.Common;
 
 namespace waSales.Web.Controllers
@@ -27,6 +28,65 @@ namespace waSales.Web.Controllers
         public IEnumerable<Country> GetCountries([FromRoute] int companyId)
         {
             return _context.Countries.Where(x => x.Enabled == true && x.CompanyId == companyId);
+        }
+
+
+        // GET: api/Countries/GetFull/5
+        [HttpGet("[action]/{companyId}")]
+        public IEnumerable<ComboViewModel> GetFull([FromRoute] int companyId)
+        {
+            //  List<City> cities = _context.Cities.Where(x => x.Enabled).Include(x => x.State).ThenInclude(x => x.Country.CompanyId == companyId).ToList();
+
+            List<Country> countries = _context.Countries.Where(x => x.CompanyId == companyId && x.Enabled && x.States.Any(y=>y.Enabled && y.Cities.Any(c=>c.Enabled))  ).Include(y=>y.States).ThenInclude(x=>x.Cities).ToList();
+
+
+            List<ComboViewModel> list = new List<ComboViewModel>();
+
+            foreach (var country in countries.OrderBy(x=>x.Description))
+            {
+                ComboViewModel comboCountry = new ComboViewModel
+                {
+                    Value = country.Id,
+                    Label = country.Description,
+                    Children = new List<ComboViewModel>()
+                };
+
+                foreach (var state  in country.States.OrderBy(x => x.Description))
+                {
+                    if (state.Enabled)
+                    {
+                        ComboViewModel comboState = new ComboViewModel
+                        {
+                            Value = state.Id,
+                            Label = state.Description,
+                            Children = new List<ComboViewModel>()
+                        };
+
+                        foreach (var city in state.Cities.OrderBy(x => x.Description))
+                        {
+                            if (city.Enabled) 
+                            {
+                                ComboViewModel comboCity = new ComboViewModel
+                                {
+                                    Value = city.Id,
+                                    Label = city.Description
+                                };
+                                comboState.Children.Add(comboCity);
+                            }
+
+                        }
+
+                        comboCountry.Children.Add(comboState);
+                    }
+
+                }
+
+                list.Add(comboCountry);
+            }
+
+
+
+            return list;
         }
 
         //// GET: api/PriceList/5

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using waSales.Entities.Tipification;
 
 namespace waSales.Entities.Provider
 {
@@ -8,9 +9,11 @@ namespace waSales.Entities.Provider
     {
         public int Id { get; set; }
         public string RazonSocial { get; set; }
-        public int DocumentTypeId { get; set; }
+        public int? DocumentTypeId { get; set; }
         public string Documento { get; set; }
         public string Address { get; set; }
+        public int? CountryId { get; set; }
+        public int? StateId { get; set; }
         public int? CityId { get; set; }
         public string Email { get; set; }
         public string WebSite { get; set; }
@@ -20,5 +23,8 @@ namespace waSales.Entities.Provider
         public string Observation { get; set; }
         public string Phone { get; set; }
         public bool Enabled { get; set; }
+        public string Logo { get; set; }
+
+        public virtual City Cities { get; set; }
     }
 }
