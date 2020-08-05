@@ -12,5 +12,7 @@ namespace waSales.Entities.Tipification
         public bool Enabled { get; set; }
         public int CompanyId { get; set; }
         public virtual Company Company { get; set; }
+
+        public virtual ICollection<SubCategory> SubCategories { get; set; }
     }
 }

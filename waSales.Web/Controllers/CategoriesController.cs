@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using waSales.Data;
 using waSales.Entities.Tipification;
+using waSales.Web.Models.Reusable.Combo;
 using waSales.Web.Models.Reusable.Common;
+using waSales.Web.Models.Reusable.Tree;
 
 namespace waSales.Web.Controllers
 {
@@ -29,26 +31,91 @@ namespace waSales.Web.Controllers
             return _context.Categories.Where(x => x.Enabled == true && x.CompanyId == companyId);
         }
 
-        //// GET: api/Categories/Get/5
-        //[HttpGet("[action]/{id}")]
-        //public async Task<IActionResult> GetCategory([FromRoute] int id)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        // GET: api/Categories/GetFull/5
+        [HttpGet("[action]/{companyId}")]
+        public IEnumerable<TreeViewModel> GetFull([FromRoute] int companyId)
+        {
 
-        //    var modelo = await _context.Categories.FindAsync(id);
+            List<Category> objects = _context.Categories.Where(x => x.CompanyId == companyId && x.Enabled).Include(x => x.SubCategories ).ToList();
 
 
+            List<TreeViewModel> list = new List<TreeViewModel>();
 
-        //    if (modelo == null)
-        //    {
-        //        return NotFound();
-        //    }
+            foreach (var category in objects.OrderBy(x => x.Description))
+            {
+                TreeViewModel comboCountry = new TreeViewModel
+                {
+                    Id = category.Id,
+                    Label = category.Description,
+                    Children = new List<TreeViewModel>()
+                };
 
-        //    return Ok(modelo);
-        //}
+                foreach (var subcategory in category.SubCategories.OrderBy(x => x.Description))
+                {
+                    if (subcategory.Enabled)
+                    {
+                        TreeViewModel comboState = new TreeViewModel
+                        {
+                            Id = subcategory.Id,
+                            Label = subcategory.Description
+                        };
+
+                        comboCountry.Children.Add(comboState);
+
+                    }
+
+                }
+
+                list.Add(comboCountry);
+            }
+
+
+
+            return list;
+        }
+
+        // GET: api/Categories/GetComboFull/5
+        [HttpGet("[action]/{companyId}")]
+        public IEnumerable<ComboViewModel> GetComboFull([FromRoute] int companyId)
+        {
+
+            List<Category> objects = _context.Categories.Where(x => x.CompanyId == companyId && x.Enabled).Include(x => x.SubCategories).ToList();
+
+
+            List<ComboViewModel> list = new List<ComboViewModel>();
+
+            foreach (var category in objects.OrderBy(x => x.Description))
+            {
+                ComboViewModel comboCountry = new ComboViewModel
+                {
+                    Value = category.Id,
+                    Label = category.Description,
+                    Children = new List<ComboViewModel>()
+                };
+
+                foreach (var subcategory in category.SubCategories.OrderBy(x => x.Description))
+                {
+                    if (subcategory.Enabled)
+                    {
+                        ComboViewModel comboState = new ComboViewModel
+                        {
+                            Value = subcategory.Id,
+                            Label = subcategory.Description
+                        };
+
+                        comboCountry.Children.Add(comboState);
+
+                    }
+
+                }
+
+                list.Add(comboCountry);
+            }
+
+
+
+            return list;
+        }
 
         // POST: api/Categories/Create
         [HttpPost("[action]")]
