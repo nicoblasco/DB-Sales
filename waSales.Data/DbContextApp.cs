@@ -63,6 +63,9 @@ namespace waSales.Data
 
         public DbSet<Entities.Product.Product> Products { get; set; }
 
+        public DbSet<Entities.Product.ProductPriceLists> ProductPriceLists { get; set; }
+        public DbSet<Entities.Product.ProductProviders> ProductProviders { get; set; }
+
 
 
 
@@ -115,6 +118,8 @@ namespace waSales.Data
             modelBuilder.ApplyConfiguration(new CustomerMap());
             modelBuilder.ApplyConfiguration(new ProviderMap());
             modelBuilder.ApplyConfiguration(new ProductMap());
+            modelBuilder.ApplyConfiguration(new ProductPriceListsMap());
+            modelBuilder.ApplyConfiguration(new ProductProvidersMap());
 
         }
     }

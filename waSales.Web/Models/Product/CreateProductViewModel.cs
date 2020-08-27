@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using waSales.Web.Models.Reusable.Combo;
 
 namespace waSales.Web.Models.Product
 {
@@ -34,5 +35,8 @@ namespace waSales.Web.Models.Product
         public bool Enabled { get; set; }
         public string LogoName { get; set; }
         public bool? CheckStock { get; set; }
+
+        public List<int> Providers { get; set; }
+        public List<ProductPriceListsViewModel> ProductPriceLists { get; set; }
     }
 }

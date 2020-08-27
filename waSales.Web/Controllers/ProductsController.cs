@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using waSales.Data;
 using waSales.Entities.Product;
+using waSales.Entities.Provider;
 using waSales.Web.Models.Product;
 
 namespace waSales.Web.Controllers
@@ -82,18 +83,20 @@ namespace waSales.Web.Controllers
         public async Task<IActionResult> Create([FromBody] CreateProductViewModel model)
         {
             string strRuta = _config["ProductAvatar"];
+           
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+
             Product modelo = new Product
             {
                 Awaiting = model.Awaiting ?? false,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId,
-                Codigo = model.Codigo.Trim(),
+                Codigo = model.Codigo?.Trim(),
                 CompanyId = model.CompanyId,
                 Cost = model.Cost,
                 DateInitial = DateTime.Now,
@@ -104,16 +107,39 @@ namespace waSales.Web.Controllers
                 Gain = model.Gain,
                 InStock = model.InStock ?? false,
                 LocationId = model.LocationId,
-                Name = model.Name.Trim(),
-                NameShort = model.NameShort.Trim(),
+                Name = model.Name?.Trim(),
+                NameShort = model.NameShort?.Trim(),
                 OutOfStock = model.OutOfStock??false,
                 Price = model.Price??0,
                 Stock = model.Stock,
                 StockMin = model.StockMin,
                 SubCategoryId = model.SubCategoryId,
-                CheckStock = model.CheckStock??false
+                CheckStock = model.CheckStock??false,
+                ProductProviders = new List<ProductProviders>(),
+                ProductPriceLists = new List<ProductPriceLists>()
+
             };
 
+            foreach (var prov in model.Providers)
+            {
+                ProductProviders productProviders = new ProductProviders
+                {
+                    ProviderId = prov,
+                    ProductId = modelo.Id
+                };
+
+                modelo.ProductProviders.Add(productProviders);
+            }
+
+            foreach (var price in model.ProductPriceLists)
+            {
+                ProductPriceLists productPriceLists = new ProductPriceLists
+                {
+                    PriceListId= price.PriceList,
+                    ProductId= modelo.Id
+                };
+                modelo.ProductPriceLists.Add(productPriceLists);
+            }
 
             _context.Products.Add(modelo);
             try
@@ -121,9 +147,17 @@ namespace waSales.Web.Controllers
                 await _context.SaveChangesAsync();
 
 
-                //Guardo el avatar
+
+                
                 if (modelo.Id > 0)
                 {
+                    //Codigo
+                    if (string.IsNullOrEmpty(modelo.Codigo))
+                    {
+                        modelo.Codigo = modelo.Id.ToString();
+                    }
+
+                    //Guardo el avatar
                     if (!(string.IsNullOrEmpty(model.LogoName)) && (!string.IsNullOrEmpty(model.Logo)))
                     {
                         strRuta = strRuta + "//" + modelo.Id.ToString() + "//" + model.LogoName;
@@ -132,6 +166,7 @@ namespace waSales.Web.Controllers
                         System.IO.File.WriteAllBytes(strRuta, Convert.FromBase64String(model.Logo.Substring(model.Logo.LastIndexOf(',') + 1)));
                         modelo.Logo = strRuta;
                     }
+
                 }
 
                 _context.Entry(modelo).State = EntityState.Modified;

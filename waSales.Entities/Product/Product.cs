@@ -43,5 +43,9 @@ namespace waSales.Entities.Product
         public virtual Location Location { get; set; }
         public virtual ExchangeCurrency ExchangeCurrency { get; set; }
 
+        public ICollection<Entities.Product.ProductProviders> ProductProviders { get; set; }
+        public ICollection<Entities.Product.ProductPriceLists> ProductPriceLists { get; set; }
+
+
     }
 }
