@@ -33,13 +33,14 @@ namespace waSales.Web.Models.Product
 
         public int ExchangeCurrencyId { get; set; }
         public string ExchangeCurrency { get; set; }
-        public int? Discount { get; set; }
+        public decimal? Discount { get; set; }
         public bool? InStock { get; set; }
         public bool? Awaiting { get; set; }
         public bool? OutOfStock { get; set; }
         public string Logo { get; set; }
         public string LogoName { get; set; }
         public bool? CheckStock { get; set; }
+        public string Status { get; set; }
 
 
     }

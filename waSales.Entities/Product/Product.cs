@@ -28,7 +28,7 @@ namespace waSales.Entities.Product
 
         public DateTime? DateEnd { get; set; }
         public int ExchangeCurrencyId { get; set; }
-        public int? Discount { get; set; }
+        public decimal? Discount { get; set; }
         public int CompanyId { get; set; }
         public bool? InStock { get; set; }
         public bool? Awaiting { get; set; }

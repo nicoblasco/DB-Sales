@@ -32,6 +32,8 @@ namespace waSales.Web.Controllers
         {
             List<Product> products  = _context.Products.Where(x => x.Enabled && x.CompanyId == companyId).Include(x => x.Category).Include(x=>x.SubCategory).Include(x=>x.Brand).Include(x=>x.Location).Include(x=>x.ExchangeCurrency).ToList();
             List<IndexProductViewModel> list = new List<IndexProductViewModel>();
+            string strRutaDefault = _config["ProductDefault"];
+
             foreach (var item in products)
             {
                 IndexProductViewModel model = new IndexProductViewModel
@@ -40,18 +42,18 @@ namespace waSales.Web.Controllers
                     Awaiting = item.Awaiting,
                     Brand = item.Brand?.Description,
                     BrandId= item.BrandId,
-                    Category = item.Category.Description,
+                    Category = item.Category?.Description,
                     CategoryId = item.CategoryId,
                     Codigo = item.Codigo,
                     Cost = item.Cost,
                     DateInitial = item.DateInitial.ToString("dd/MM/yyyy"),
                     Description = item.Description,
                     Discount = item.Discount,
-                    ExchangeCurrency = item.ExchangeCurrency.Description,
+                    ExchangeCurrency = item.ExchangeCurrency?.Description,
                     ExchangeCurrencyId = item.ExchangeCurrencyId,
                     Gain= item.Gain,
                     InStock = item.InStock,
-                    Location = item.Location.Description,
+                    Location = item.Location?.Description,
                     LocationId = item.LocationId,
                     Name = item.Name,
                     NameShort=item.NameShort,
@@ -59,14 +61,45 @@ namespace waSales.Web.Controllers
                     Price = item.Price,
                     Stock = item.Stock,
                     StockMin = item.StockMin,
-                    SubCategory = item.SubCategory.Description,
+                    SubCategory = item.SubCategory?.Description,
                     SubCategoryId = item.SubCategoryId,
                     CheckStock = item.CheckStock
                 };
 
+                if (!item.CheckStock.Value)
+                {
+                    if (item.InStock.Value)
+                        model.Status = "En Stock";
+                    if (item.OutOfStock.Value)
+                        model.Status = "Sin Stock";
+                    if (item.Awaiting.Value)
+                        model.Status = "En Espera";
+                }
+                else
+                { 
+                    if (item.Stock>item.StockMin)
+                    {
+                        model.Status = "En Stock";
+                    }
+                    else
+                    {
+                        if (model.Stock <= item.StockMin && model.Stock > 0)
+                            model.Status = "Ultimos";
+                        else
+                            model.Status = "Sin Stock";
+                    }
+                }
+
+
                 if (!string.IsNullOrEmpty(item.Logo))
                 {
                     byte[] imageArray = System.IO.File.ReadAllBytes(@item.Logo);
+                    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+                    model.Logo = "data:image/png;base64," + base64ImageRepresentation;
+                }
+                else
+                {
+                    byte[] imageArray = System.IO.File.ReadAllBytes(strRutaDefault);
                     string base64ImageRepresentation = Convert.ToBase64String(imageArray);
                     model.Logo = "data:image/png;base64," + base64ImageRepresentation;
                 }
