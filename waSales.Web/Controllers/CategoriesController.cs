@@ -76,30 +76,30 @@ namespace waSales.Web.Controllers
 
         // GET: api/Categories/GetComboFull/5
         [HttpGet("[action]/{companyId}")]
-        public IEnumerable<ComboViewModel> GetComboFull([FromRoute] int companyId)
+        public IEnumerable<TreeViewModel> GetComboFull([FromRoute] int companyId)
         {
 
             List<Category> objects = _context.Categories.Where(x => x.CompanyId == companyId && x.Enabled).Include(x => x.SubCategories).ToList();
 
 
-            List<ComboViewModel> list = new List<ComboViewModel>();
+            List<TreeViewModel> list = new List<TreeViewModel>();
 
             foreach (var category in objects.OrderBy(x => x.Description))
             {
-                ComboViewModel comboCountry = new ComboViewModel
+                TreeViewModel comboCountry = new TreeViewModel
                 {
-                    Value = category.Id,
+                    Id = category.Id,
                     Label = category.Description,
-                    Children = new List<ComboViewModel>()
+                    Children = new List<TreeViewModel>()
                 };
 
                 foreach (var subcategory in category.SubCategories.OrderBy(x => x.Description))
                 {
                     if (subcategory.Enabled)
                     {
-                        ComboViewModel comboState = new ComboViewModel
+                        TreeViewModel comboState = new TreeViewModel
                         {
-                            Value = subcategory.Id,
+                            Id = subcategory.Id,
                             Label = subcategory.Description
                         };
 

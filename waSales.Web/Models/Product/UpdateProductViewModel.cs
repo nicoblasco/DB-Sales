@@ -8,7 +8,7 @@ namespace waSales.Web.Models.Product
     public class UpdateProductViewModel
     {
 
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Codigo { get; set; }
         public string Name { get; set; }
         public string NameShort { get; set; }
@@ -27,12 +27,15 @@ namespace waSales.Web.Models.Product
         public decimal? Price { get; set; }
 
         public int ExchangeCurrencyId { get; set; }
-        public int? Discount { get; set; }
+        public decimal? Discount { get; set; }
         public bool? InStock { get; set; }
         public bool? Awaiting { get; set; }
         public bool? OutOfStock { get; set; }
         public string Logo { get; set; }
         public string LogoName { get; set; }
         public bool? CheckStock { get; set; }
+
+        public List<int> Providers { get; set; }
+        public List<ProductPriceListsViewModel> ProductPriceLists { get; set; }
     }
 }

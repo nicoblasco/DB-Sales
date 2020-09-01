@@ -27,7 +27,7 @@ namespace waSales.Web.Controllers
 
         // GET: api/Customers/5
         [HttpGet("{companyId}")]
-        public IEnumerable<IndexCustomerViewModel> GetProviders([FromRoute] int companyId)
+        public IEnumerable<IndexCustomerViewModel> GetCustomers ([FromRoute] int companyId)
         {
             List<Customer> providers = _context.Customers.Where(x => x.Enabled == true && x.CompanyId == companyId).Include(x => x.Cities).ToList();
             List<IndexCustomerViewModel> list = new List<IndexCustomerViewModel>();

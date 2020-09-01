@@ -28,7 +28,7 @@ namespace waSales.Web.Controllers
 
         // GET: api/Products/5
         [HttpGet("{companyId}")]
-        public IEnumerable<IndexProductViewModel> GetProviders([FromRoute] int companyId)
+        public IEnumerable<IndexProductViewModel> GetProducts([FromRoute] int companyId)
         {
             List<Product> products  = _context.Products.Where(x => x.Enabled && x.CompanyId == companyId).Include(x => x.Category).Include(x=>x.SubCategory).Include(x=>x.Brand).Include(x=>x.Location).Include(x=>x.ExchangeCurrency).ToList();
             List<IndexProductViewModel> list = new List<IndexProductViewModel>();
@@ -110,6 +110,106 @@ namespace waSales.Web.Controllers
             return list.OrderBy(x => x.Name);
         }
 
+        // GET: api/Products/id/5
+        [HttpGet("[action]/{id}")]
+        public async Task<IActionResult> GetProduct([FromRoute] int id)
+        {
+            Product product = await _context.Products.Where(x => x.Id == id).Include(x => x.ProductPriceLists).Include(x => x.ProductProviders).FirstOrDefaultAsync();
+            string strRutaDefault = _config["ProductDefault"];
+
+
+            UpdateProductViewModel model = new UpdateProductViewModel
+            {
+                    Id = product.Id,
+                    Awaiting = product.Awaiting,
+                    BrandId = product.BrandId,
+                    CategoryId = product.CategoryId,
+                    Codigo = product.Codigo,
+                    Cost = product.Cost,
+                    Description = product.Description,
+                    Discount = product.Discount,
+                    ExchangeCurrencyId = product.ExchangeCurrencyId,
+                    Gain = product.Gain,
+                    InStock = product.InStock,
+                    LocationId = product.LocationId,
+                    Name = product.Name,
+                    NameShort = product.NameShort,
+                    OutOfStock = product.OutOfStock,
+                    Price = product.Price,
+                    Stock = product.Stock,
+                    StockMin = product.StockMin,
+                    SubCategoryId = product.SubCategoryId,
+                    CheckStock = product.CheckStock,
+                    ProductPriceLists = new List<ProductPriceListsViewModel>(),
+                    Providers = new List<int>()
+                };
+
+
+            foreach (var item in product.ProductPriceLists)
+            {
+                ProductPriceListsViewModel productPrice = new ProductPriceListsViewModel
+                {
+                    Id = item.Id,
+                    Price = item.Price,
+                    PriceList = item.PriceListId
+                };
+                model.ProductPriceLists.Add(productPrice);
+            }
+
+            foreach (var item in product.ProductProviders)
+            {
+                model.Providers.Add(item.ProviderId);
+            }
+
+              /*  if (!product.CheckStock.Value)
+                {
+                    if (product.InStock.Value)
+                        model.Status = "En Stock";
+                    if (product.OutOfStock.Value)
+                        model.Status = "Sin Stock";
+                    if (product.Awaiting.Value)
+                        model.Status = "En Espera";
+                }
+                else
+                {
+                    if (product.Stock > product.StockMin)
+                    {
+                        model.Status = "En Stock";
+                    }
+                    else
+                    {
+                        if (model.Stock <= product.StockMin && model.Stock > 0)
+                            model.Status = "Ultimos";
+                        else
+                            model.Status = "Sin Stock";
+                    }
+                }*/
+
+                
+                
+
+                if (!string.IsNullOrEmpty(product.Logo))
+                {
+                    byte[] imageArray = System.IO.File.ReadAllBytes(@product.Logo);
+                    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+                    model.Logo = "data:image/png;base64," + base64ImageRepresentation;
+                }
+             /*   else
+                {
+                    byte[] imageArray = System.IO.File.ReadAllBytes(strRutaDefault);
+                    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+                    model.Logo = "data:image/png;base64," + base64ImageRepresentation;
+                }*/
+
+
+
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(model);
+        }
 
         // POST: api/Products/Create
         [HttpPost("[action]")]
@@ -123,13 +223,24 @@ namespace waSales.Web.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (!string.IsNullOrEmpty(model.Codigo))
+            {
+                //Verifico si el codigo existe
+                if (_context.Products.Where(x => x.Codigo == model.Codigo.ToUpper().Trim()).Any())
+                {
+
+                    return BadRequest(new { Message = "Código repetido" });
+                }
+            }
+
+
 
             Product modelo = new Product
             {
                 Awaiting = model.Awaiting ?? false,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId,
-                Codigo = model.Codigo?.Trim(),
+                Codigo = model.Codigo?.ToUpper().Trim(),
                 CompanyId = model.CompanyId,
                 Cost = model.Cost,
                 DateInitial = DateTime.Now,
@@ -169,7 +280,8 @@ namespace waSales.Web.Controllers
                 ProductPriceLists productPriceLists = new ProductPriceLists
                 {
                     PriceListId= price.PriceList,
-                    ProductId= modelo.Id
+                    ProductId= modelo.Id,
+                    Price = price.Price
                 };
                 modelo.ProductPriceLists.Add(productPriceLists);
             }
@@ -232,7 +344,7 @@ namespace waSales.Web.Controllers
                 return BadRequest();
             }
 
-            var modelo = await _context.Products.FirstOrDefaultAsync(x => x.Id == model.Id);
+            var modelo = await _context.Products.Where(x => x.Id == model.Id).Include(x => x.ProductPriceLists).Include(x => x.ProductProviders).FirstOrDefaultAsync();
 
             if (modelo == null)
                 return BadRequest("Producto inexistente");
@@ -255,8 +367,73 @@ namespace waSales.Web.Controllers
             modelo.Price = model.Price;
             modelo.Stock = model.Stock;
             modelo.StockMin = model.StockMin;
-            modelo.SubCategoryId = model.SubCategoryId;            
+            modelo.SubCategoryId = model.SubCategoryId;
 
+
+
+            var providerToBeAdded = model.Providers.Where(a => modelo.ProductProviders.All(
+            b => b.ProviderId != a));
+
+
+            var providerToBeDeleted = modelo.ProductProviders.Where(a => model.Providers.All(
+            b => b != a.ProviderId));
+
+
+            foreach (var prov in providerToBeDeleted)
+            {
+                modelo.ProductProviders.Remove(prov);
+            }
+
+            foreach (var prov in providerToBeAdded)
+            {
+                ProductProviders productProviders = new ProductProviders
+                {
+                    ProviderId = prov,
+                    ProductId = modelo.Id
+                };
+
+                modelo.ProductProviders.Add(productProviders);
+            }
+
+
+            foreach (var price in model.ProductPriceLists)
+            {
+                //Nuevos
+                if (price.IsNew && price.IsRemoved==false)
+                {
+                    ProductPriceLists productPriceLists = new ProductPriceLists
+                    {
+                        PriceListId = price.PriceList,
+                        ProductId = modelo.Id,
+                        Price = price.Price
+                    };
+                    modelo.ProductPriceLists.Add(productPriceLists);
+                }
+                else
+                {
+                    if (!price.IsNew)
+                    {
+                        ProductPriceLists productPriceLists = modelo.ProductPriceLists.Where(x => x.Id == price.Id).FirstOrDefault();
+                        //Borrados
+
+                        if (price.IsNew == false && price.IsRemoved)
+                        {
+                            modelo.ProductPriceLists.Remove(productPriceLists);
+                        }
+                        else
+                        {
+                            //Actualizo
+                            productPriceLists.Price = price.Price;
+                            productPriceLists.PriceListId = price.PriceList;
+
+                        }
+                    }
+
+
+
+
+                }
+            }
 
             ////Guardo el avatar
             if (!(string.IsNullOrEmpty(model.LogoName)) && (!string.IsNullOrEmpty(model.Logo)))
