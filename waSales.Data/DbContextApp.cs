@@ -55,6 +55,9 @@ namespace waSales.Data
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
         public DbSet<SalesUnit> SalesUnits { get; set; }
+        public DbSet<DeliveryTurn> DeliveryTurns { get; set; }
+        public DbSet<DeliveryType> DeliveryTypes { get; set; }
+        public DbSet<VoucherType> VoucherTypes { get; set; }
 
 
         /*Menu*/
@@ -120,7 +123,9 @@ namespace waSales.Data
             modelBuilder.ApplyConfiguration(new ProductMap());
             modelBuilder.ApplyConfiguration(new ProductPriceListsMap());
             modelBuilder.ApplyConfiguration(new ProductProvidersMap());
-
+            modelBuilder.ApplyConfiguration(new DeliveryTurnMap());
+            modelBuilder.ApplyConfiguration(new DeliveryTypeMap());
+            modelBuilder.ApplyConfiguration(new VoucherTypeMap());
         }
     }
 }
